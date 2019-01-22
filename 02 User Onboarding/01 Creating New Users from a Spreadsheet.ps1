@@ -47,45 +47,9 @@ $Params = @{
 }
 #endregion
 
-#region As a script
-# Hashtable to correlate properties
-$expectedProperties = @{
-    Name = 'Full Name'
-    GivenName = 'First Name'
-    SurName = 'Last Name'
-    Title = 'Job Title'
-    Department = 'Department'
-    OfficePhone = 'Phone Number'
-}
-
-# Incoming Directory
-$dir = 'C:\Temp\IncomingUsers'
-
-# For each spreadsheet it finds
-ForEach($update in (Get-ChildItem $dir -Filter *.xlsx)){
-    $data = Import-Excel $update.fullname
-    ForEach($user in $data){
-        # Build a splat
-        $params = @{}
-        ForEach($property in $expectedProperties.GetEnumerator()){
-            # If the new user has the property
-            If($user."$($property.value)".Length -gt 0){
-                # Add it to the splat
-                $params["$($property.Name)"] = $user."$($property.value)"
-            }
-        }
-        # Deal with the manager value separate
-        If($user.Manager.length -gt 0){
-            $params['Manager'] = $user.Manager.Replace(' ','.')
-        }
-        # Create the user
-        New-ADUser @params -WhatIf
-    }
-}
-#endregion
-
 #region Create a function
 Function Import-UsersFromSpreadsheet {
+    [cmdletbinding()]
     Param(
         [ValidatePattern('.*\.xlsx$')]
         [ValidateNotNullOrEmpty()]
@@ -113,10 +77,11 @@ Function Import-UsersFromSpreadsheet {
                     $params["$($property.Name)"] = $user."$($property.value)"
                 }
             }
-            # Deal with the manager value separate
+            # Deal with other values
             If($user.Manager.length -gt 0){
                 $params['Manager'] = $user.Manager.Replace(' ','.')
             }
+            $params['SamAccountName'] = "$($user.$($expectedProperties['GivenName'])).$($user.$($expectedProperties['SurName']))"
             # Create the user
             New-ADUser @params -WhatIf
         }
