@@ -12,9 +12,9 @@ Function New-LabSessions {
         [string]$Password = 'Somepass1'
     )
     $global:Sessions = @()
+    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
     $Cred = [pscredential]::new("$Domain\administrator",$securePassword)
     ForEach($Comp in $Comps){
-        $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
         $global:Sessions += New-PSSession $comp -Credential $cred
     }
 }
