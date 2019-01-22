@@ -48,7 +48,7 @@ $Params = @{
 #endregion
 
 #region Create a function
-Function Import-UsersFromSpreadsheet {
+Function Import-ADUsersFromSpreadsheet {
     [cmdletbinding()]
     Param(
         [ValidatePattern('.*\.xlsx$')]
@@ -83,8 +83,13 @@ Function Import-UsersFromSpreadsheet {
             }
             $params['SamAccountName'] = "$($user.$($expectedProperties['GivenName'])).$($user.$($expectedProperties['SurName']))"
             # Create the user
-            New-ADUser @params -WhatIf
+            New-ADUser @params
         }
     }
+}
+
+# Verify
+ForEach($user in $data){
+    Get-ADUser "$($user.'First Name').$($user.'Last Name')" | Select-Object Name
 }
 #endregion
