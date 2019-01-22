@@ -88,6 +88,9 @@ Function Import-ADUsersFromSpreadsheet {
     }
 }
 
+# Usage
+Import-ADUsersFromSpreadsheet -PathToSpreadsheet '.\UserUpdate.xlsx'
+
 # Verify
 ForEach($user in $data){
     Get-ADUser "$($user.'First Name').$($user.'Last Name')" | Select-Object Name
