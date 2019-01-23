@@ -41,17 +41,11 @@ Get-ADUser $Data[0].Manager
 
 Get-ADUser $Data[0].Manager.Replace(' ','.')
 
-# Full correlation
-$expectedProperties = @{
-    Name = 'Full Name'
-    GivenName = 'First Name'
-    SurName = 'Last Name'
-    Title = 'Job Title'
-    Department = 'Department'
-    OfficePhone = 'Phone Number'
-}
-$Manager = $Data[0].Manager.Replace(' ','.')
-$Manager
+# Manager
+$Data[0].Manager.Replace(' ','.')
+
+# SamAccountName
+"$($Data[0].'First Name').$($Data[0].'Last Name')"
 
 # Create a single user
 $user = $Data[0]
