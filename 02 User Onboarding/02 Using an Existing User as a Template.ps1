@@ -10,6 +10,9 @@ ForEach($group in $BaseGroups){
     Add-ADGroupMember $group -Members 'Template User'
 }
 
+# Verify
+Get-ADUser 'Template User' -Properties StreetAddress,City,State,PostalCode,MemberOf
+
 #endregion
 
 #region Creating users from the template
@@ -18,6 +21,9 @@ $user = Get-ADUser 'Template User' -Properties StreetAddress,City,State,PostalCo
 
 # Create a single user from that
 New-ADUser 'Walter White' -GivenName 'Walter' -Surname 'White' -Instance $user
+
+# Check Groups
+(Get-ADUser 'Walter White' -Properties MemberOf).MemberOf
 
 # Add that user to the same groups
 ForEach($group in $user.MemberOf){
