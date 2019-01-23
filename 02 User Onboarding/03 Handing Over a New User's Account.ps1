@@ -12,6 +12,9 @@ Set-ADAccountPassword -Identity 'Walter White' -NewPassword (ConvertTo-SecureStr
 # Enable the account
 Set-ADUser 'Walter White' -Enabled $true -ChangePasswordAtLogon $true
 
+# Verify
+Get-ADUser 'Walter White'
+
 #endregion
 
 #region Notifying via email
