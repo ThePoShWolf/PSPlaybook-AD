@@ -14,3 +14,5 @@ foreach($user in $data){
     Set-ADUser $user.Manager.Replace(' ','.') -EmailAddress 'anthony@howell-it.com'
 }
 $global:From = 'anthony@howell-it.com'
+
+$cred = Get-Credential
