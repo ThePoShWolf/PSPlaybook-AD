@@ -171,7 +171,6 @@ table, th, td {
 "@
             $html = $header + ($htmlTemplate -f $user.manager,$params['Name'],$params['SamAccountName'],"$randomPassword")
             # Email the manager
-            (Get-ADUser $params['Manager'] -Properties EmailAddress).EmailAddress
             $EmailParams = @{
                 To = (Get-ADUser $params['Manager'] -Properties EmailAddress).EmailAddress
                 From = $from
