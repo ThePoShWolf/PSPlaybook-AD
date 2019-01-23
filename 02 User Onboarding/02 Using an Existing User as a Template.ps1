@@ -26,7 +26,9 @@ ForEach($group in $user.MemberOf){
 
 # Verify
 Get-ADUser 'Walter White' -Properties StreetAddress,City,State,PostalCode
+#endregion
 
+#region Function time!
 # Create your spreadsheet users using the template as well
 Function Import-ADUsersFromSpreadsheet {
     [cmdletbinding(
@@ -95,11 +97,14 @@ Function Import-ADUsersFromSpreadsheet {
     }
 }
 
+# Usage
+Import-ADUsersFromSpreadsheet -PathToSpreadsheet '.\UserUpdate.xlsx' -TemplateUser 'Template User'
+
 # Verify
 $SpreadSheet = '.\UserUpdate.xlsx'
 $data = Import-Excel $SpreadSheet
 ForEach($user in $data){
-    Get-ADUser "$($user.'First Name').$($user.'Last Name')" -Properties StreetAddress | Select-Object Name,StreetAddress
+    Get-ADUser "$($user.'First Name').$($user.'Last Name')" -Properties StreetAddress,MemberOf | Select-Object Name,StreetAddress,MemberOf
 }
 
 #endregion
