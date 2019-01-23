@@ -7,6 +7,8 @@
 Get-Module ImportExcel
 Get-Module ActiveDirectory
 
+(Get-ADDomainController).Name
+
 #region prep work
 # Import the spreadsheet
 $SpreadSheet = '.\UserUpdate.xlsx'
