@@ -26,6 +26,8 @@ ForEach($group in $user.MemberOf){
 
 # Verify
 Get-ADUser 'Walter White' -Properties StreetAddress,City,State,PostalCode
+(Get-ADUser 'Walter White' -Properties MemberOf).MemberOf
+
 #endregion
 
 #region Function time!
