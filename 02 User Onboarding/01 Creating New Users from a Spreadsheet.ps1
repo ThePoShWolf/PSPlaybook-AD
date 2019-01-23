@@ -3,6 +3,10 @@
     Import-Module ActiveDirectory
 #>
 
+# Show modules
+Get-Module ImportExcel
+Get-Module ActiveDirectory
+
 #region prep work
 # Import the spreadsheet
 $SpreadSheet = '.\UserUpdate.xlsx'
