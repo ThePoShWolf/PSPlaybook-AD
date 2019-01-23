@@ -3,6 +3,7 @@ Set-ADUser 'Walter White' -Enabled $true
 
 # Generate a random password
 # [system.web.security.membership]::GeneratePassword(a,b) a = length, b = minimum non-alphanumeric characters
+# May need to: Add-Type -AssemblyName System.Web
 $randomPassword = [System.Web.Security.Membership]::GeneratePassword(10,1)
 
 # Set the new account with this info
