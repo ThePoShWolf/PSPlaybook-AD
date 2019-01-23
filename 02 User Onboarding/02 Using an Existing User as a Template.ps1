@@ -14,10 +14,15 @@ ForEach($group in $BaseGroups){
 
 #region Creating users from the template
 # Retrieve the template user
-$user = Get-ADUser 'Template User' -Properties StreetAddress,City,State,PostalCode
+$user = Get-ADUser 'Template User' -Properties StreetAddress,City,State,PostalCode,MemberOf
 
 # Create a single user from that
 New-ADUser 'Walter White' -GivenName 'Walter' -Surname 'White' -Instance $user
+
+# Add that user to the same groups
+ForEach($group in $user.MemberOf){
+    Add-ADGroupMember $group -Members 'Walter White'
+}
 
 # Verify
 Get-ADUser 'Walter White' -Properties StreetAddress,City,State,PostalCode
@@ -79,8 +84,12 @@ Function Import-ADUsersFromSpreadsheet {
             If($PSCmdlet.ParameterSetName -eq 'Plain'){
                 New-ADUser @params
             }ElseIf($PSCmdlet.ParameterSetName -eq 'FromTemplate'){
-                $template = Get-ADUser $TemplateUser -Properties $Properties
+                $props = $Properties + 'MemberOf'
+                $template = Get-ADUser $TemplateUser -Properties $props
                 New-ADUser @params -Instance $template
+                ForEach($group in $template.MemberOf){
+                    Add-ADGroupMember $group -Members $params['samaccountname']
+                }
             }
         }
     }
