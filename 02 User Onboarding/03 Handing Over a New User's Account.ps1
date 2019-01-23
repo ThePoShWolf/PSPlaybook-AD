@@ -124,8 +124,12 @@ Function Import-ADUsersFromSpreadsheet {
             If($PSCmdlet.ParameterSetName -eq 'Plain'){
                 New-ADUser @params
             }ElseIf($PSCmdlet.ParameterSetName -eq 'FromTemplate'){
-                $template = Get-ADUser $TemplateUser -Properties $Properties
+                $props = $Properties + 'MemberOf'
+                $template = Get-ADUser $TemplateUser -Properties $props
                 New-ADUser @params -Instance $template
+                ForEach($group in $template.MemberOf){
+                    Add-ADGroupMember $group -Members $params['samaccountname']
+                }
             }
             # Set the password
             $randomPassword = [System.Web.Security.Membership]::GeneratePassword(10,1)
