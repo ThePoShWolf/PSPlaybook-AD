@@ -1,8 +1,9 @@
 #region Creating groups
-# Simple
+# Global Security
 New-ADGroup 'New Hires' -GroupCategory Security -GroupScope Global
 
-# 
+# Universal distribution
+New-ADGroup 'HR Updates' -GroupCategory Distribution -GroupScope Universal
 
 #endregion
 
@@ -11,7 +12,7 @@ New-ADGroup 'New Hires' -GroupCategory Security -GroupScope Global
 Add-ADGroupMember 'New Hires' -Members 'Walter White'
 
 # Verify
-Get-ADGroupMember 'New Hires'
+Get-ADGroupMember 'New Hires' | Format-Table Name
 
 # Remove that user
 Remove-ADGroupMember 'New Hires' -Members 'Walter White'
