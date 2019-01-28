@@ -69,12 +69,30 @@ ForEach($user in $current){
     Invoke-RestMethod -Uri "$baseUri/$resource/$($user.id)" -Method Patch -Headers $header -Body $json
 }
 
-$ids = 1..606 | Get-Random -Count 10
+$ids = 1..606 | Get-Random -Count 2
 $rand
 ForEach($id in $ids){
-    If($id%2 -eq 0){
+    Invoke-RestMethod -Uri "$baseUri/$resource/$id"
+}
 
-    }Else{
+$ids = '349','258'
 
-    }
+$user = Invoke-RestMethod -Uri "$baseUri/$resource/$($ids[0])"
+$user.last_name = 'Fring' #'Hirtzmann'
+$user.full_name = 'Halli Fring' #Hirtzmann'
+$user.lastmodified = '2019.01.28'
+
+$json = $user | ConvertTo-Json
+Invoke-RestMethod -Uri "$baseUri/$resource/$($ids[0])" -Method Patch -Headers $header -Body $json
+
+$user = Invoke-RestMethod -Uri "$baseUri/$resource/$($ids[1])"
+$user.job_title = 'Human Resources Assistant II' # I
+$user.lastmodified = '2019.01.28'
+
+$json = $user | ConvertTo-Json
+Invoke-RestMethod -Uri "$baseUri/$resource/$($ids[1])" -Method Patch -Headers $header -Body $json
+
+$users = Invoke-RestMethod $baseuri/$resource -Method Get
+ForEach($user in $users){
+    Set-ADUser "$($user.first_name).$($user.last_name)" -Description $user.id
 }

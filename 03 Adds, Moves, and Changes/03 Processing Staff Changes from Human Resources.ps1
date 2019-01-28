@@ -1,16 +1,125 @@
 #region Retrieving data
 # Source
-$uri = 'http://techsnips_hr.io'
+$baseuri = 'http://techsnips_hr.io'
 $resource = 'employees'
 
 # Get data
-Invoke-RestMethod $uri/$resource -Method Get
+Invoke-RestMethod $baseuri/$resource -Method Get
 
 # Get a single employee
-Invoke-RestMethod $uri/$resource/606 -Method Get
+Invoke-RestMethod $baseuri/$resource/606 -Method Get
 
 # Compare them to AD
-$user = Invoke-RestMethod $uri/$resource/606 -Method Get
+$user = Invoke-RestMethod $baseuri/$resource/606 -Method Get
 Get-ADUser "$($user.first_name).$($user.last_name)"
+
+# While you can match by names
+$adUser = Get-ADUser "$($user.first_name).$($user.last_name)" -Properties Title,OfficePhone,manager,department
+
+# You should track API IDs somehow
+Get-ADUser -Filter "Description -eq $($user.id)" -Properties Title,OfficePhone,manager,department
+
+# Side by side
+[pscustomobject]@{
+    $user.full_name = $adUser.name
+    $user.first_name = $aduser.givenname
+    $user.last_name = $adUser.surname
+    $user.job_title = $aduser.title
+    $user.phone = $aduser.officephone
+    $user.manager = $aduser.manager
+    $user.department = $aduser.department
+}
+#endregion
+
+#region Update Changes
+# Create a property ht
+$expectedProperties = @{
+    Name = 'full_name'
+    GivenName = 'first_name'
+    SurName = 'last_name'
+    Title = 'job_title'
+    OfficePhone = 'phone'
+}
+
+# Build a splat
+$splat = @{
+    Identity = (Get-ADuser -Filter "Description -eq $($user.id)").SamAccountName
+}
+
+# Add any changes to the splat
+ForEach($property in $expectedProperties.GetEnumerator()){
+    If($adUser.$($property.name) -ne $user.$($property.value)){
+        $splat[$($property.Name)] = $user.$($property.value)
+    }
+}
+
+# Account for any special properties
+$managerFromHR = Get-ADUser $user.manager.Replace(' ','.')
+If($managerFromHR.DistinguishedName -ne $adUser.Manager){
+    $splat['Manager'] = $managerFromHR.DistinguishedName
+}
+
+# Apply the changes
+Set-ADUser @splat
+
+#endregion
+
+#region Functionize it!
+Function Update-ADUsersFromHR {
+    [cmdletbinding()]
+    Param (
+        [Parameter(
+            Mandatory = $true
+        )]
+        [datetime]$LastModified
+    )
+    # Properties HT
+    $expectedProperties = @{
+        Name = 'full_name'
+        GivenName = 'first_name'
+        SurName = 'last_name'
+        Title = 'job_title'
+        OfficePhone = 'phone'
+    }
+    # API uris
+    $baseuri = 'http://techsnips_hr.io'
+    $resource = 'employees'
+    # Make the call
+    $uri = "$baseUri/$resource`?lastmodified_gte=$(Get-Date $LastModified -Format yyyy.MM.dd)"
+    Write-Verbose $uri
+    $updates = Invoke-RestMethod -Uri $uri
+    # Deal with the data
+    ForEach($user in $updates){
+        $adUser = Get-ADuser -Filter "Description -eq $($user.id)" -Properties *
+        Write-Verbose "Found user: $($aduser.Name)"
+        # Build a splat
+        $splat = @{
+            Identity = $adUser.SamAccountName
+        }
+        # Add any changes to the splat
+        ForEach($property in $expectedProperties.GetEnumerator()){
+            If($adUser.$($property.name) -ne $user.$($property.value)){
+                $splat[$($property.Name)] = $user.$($property.value)
+                Write-Verbose " - Property $($property.Name) will be updated to: $($user.$($property.value))"
+            }
+        }
+        # Account for any special properties
+        If($user.manager){
+            $managerFromHR = Get-ADUser $user.manager.Replace(' ','.')
+            If($managerFromHR.DistinguishedName -ne $adUser.Manager){
+                $splat['Manager'] = $managerFromHR.DistinguishedName
+                Write-Verbose " - Manager will be updated to: $($managerFromHR.DistinguishedName)"
+            }
+        }
+        # Apply the changes
+        If($splat.Count -gt 1){
+            Set-ADUser @splat
+            Write-Verbose " - Changes applied."
+        }Else{
+            Write-Verbose "No changes found"
+        }
+    }
+}
+
 
 #endregion
