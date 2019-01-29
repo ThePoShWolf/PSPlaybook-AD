@@ -7,7 +7,7 @@ New-ADGroup 'HR Updates' -GroupCategory Distribution -GroupScope Universal
 
 #endregion
 
-#endregion Populating a group
+#region Populating a group
 # One user
 Add-ADGroupMember 'New Hires' -Members 'Walter White'
 

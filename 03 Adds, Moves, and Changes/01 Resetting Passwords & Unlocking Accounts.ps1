@@ -67,6 +67,9 @@ Function Reset-ADUserPassword {
 # Usage
 Reset-ADUserPassword 'Walter White'
 
+# Current State
+Get-ADUser -Filter {Title -like '*VP*'} -Properties PasswordExpired | Format-Table Name,PasswordExpired
+
 # Multipe accounts
 Get-ADUser -Filter {Title -like '*VP*'} | Reset-ADUserPassword
 
@@ -74,11 +77,20 @@ Get-ADUser -Filter {Title -like '*VP*'} | Reset-ADUserPassword
 
 #region Unlocking accounts
 # Current State
-Get-ADUser 'Jesse.Pinkman' -Properties LockedOut
+Get-ADUser 'Jesse.Pinkman' -Properties LockedOut | Format-Table Name,LockedOut
 
 # Unlock that account
 Unlock-ADAccount 'Jesse.Pinkman'
 
+#endregion
+
+#region Lock Jesse out
+Exit-PSSession
+$jesseCred = [pscredential]::new('techsnipsdemo\jesse.pinkman',(ConvertTo-SecureString 'SomeRandomPass1!' -AsPlainText -Force))
+For($x=0;$x -le 5;$x++){
+    Enter-PSSession DC01 -Credential $jesseCred
+}
+Enter-PSSession $sessions[0]
 #endregion
 
 #region Add it to our function
@@ -149,6 +161,6 @@ Function Reset-ADUserPassword {
 Reset-ADUserPassword 'Jesse.Pinkman' -Unlock
 
 # Verify
-Get-ADUser 'Jesse.Pinkman' -Properties LockedOut
+Get-ADUser 'Jesse.Pinkman' -Properties LockedOut | Format-Table Name,LockedOut
 
 #endregion
