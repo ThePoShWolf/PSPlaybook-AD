@@ -2,8 +2,14 @@
 # Global Security
 New-ADGroup 'New Hires' -GroupCategory Security -GroupScope Global
 
+# Verify
+Get-ADGroup 'New Hires'
+
 # Universal distribution
 New-ADGroup 'HR Updates' -GroupCategory Distribution -GroupScope Universal
+
+# Verify
+Get-ADGroup 'HR Updates'
 
 #endregion
 
