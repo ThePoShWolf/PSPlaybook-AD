@@ -122,6 +122,6 @@ Function Update-ADUsersFromHR {
 }
 
 # Usage
-Update-ADUsersFromHR -LastModified (Get-Date).AddDays(-2)
+Update-ADUsersFromHR -LastModified (Get-Date).AddDays(-2) -Verbose
 
 #endregion
