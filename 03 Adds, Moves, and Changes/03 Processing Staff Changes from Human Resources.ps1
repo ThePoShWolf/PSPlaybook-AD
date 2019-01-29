@@ -13,11 +13,11 @@ Invoke-RestMethod $baseuri/$resource/606 -Method Get
 $user = Invoke-RestMethod $baseuri/$resource/606 -Method Get
 Get-ADUser "$($user.first_name).$($user.last_name)"
 
-# While you can match by names
-$adUser = Get-ADUser "$($user.first_name).$($user.last_name)" -Properties Title,OfficePhone,manager,department
-
 # You should track API IDs somehow
-Get-ADUser -Filter "Description -eq $($user.id)" -Properties Title,OfficePhone,manager,department
+Get-ADUser -Filter "Description -eq $($user.id)" -Properties Description | Format-Table Name,Description
+
+# Assign it to a variable
+$adUser = Get-ADUser -Filter "Description -eq $($user.id)" -Properties Title,OfficePhone,Manager,Department,Description
 
 # Side by side
 [pscustomobject]@{
