@@ -64,6 +64,12 @@ Set-ADUser @splat
 
 #endregion
 
+#region Before we make it a function
+# _gte parameter, API specific
+Invoke-RestMethod "$baseUri/$resource`?lastmodified_gte=2019.01.28"
+
+#endregion
+
 #region Functionize it!
 Function Update-ADUsersFromHR {
     [cmdletbinding()]
