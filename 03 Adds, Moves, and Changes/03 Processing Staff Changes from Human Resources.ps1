@@ -43,7 +43,7 @@ $expectedProperties = @{
 
 # Build a splat
 $splat = @{
-    Identity = (Get-ADuser -Filter "Description -eq $($user.id)").SamAccountName
+    Identity = (Get-ADuser -Filter "Description -eq $($user.id)").DistinguishedName
 }
 
 # Add any changes to the splat
@@ -59,8 +59,21 @@ If($managerFromHR.DistinguishedName -ne $adUser.Manager){
     $splat['Manager'] = $managerFromHR.DistinguishedName
 }
 
+# Naming steps
+If($splat.Contains('GivenName') -or $splat.Contains('SurName')){
+    $renameSplat = @{
+        Identity = $adUser.DistinguishedName
+        NewName = "$($user.first_name) $($user.last_name)"
+    }
+    Rename-ADObject @renameSplat
+    $splat['SamAccountName'] = "$($user.first_name).$($user.last_name)"
+}
+
 # Apply the changes
 Set-ADUser @splat
+
+# Verify
+Get-ADUser -Filter "Description -eq $($user.id)" -Properties Title
 
 #endregion
 
@@ -100,7 +113,7 @@ Function Update-ADUsersFromHR {
         Write-Verbose "Found user: $($aduser.Name)"
         # Build a splat
         $splat = @{
-            Identity = $adUser.SamAccountName
+            Identity = $adUser.DistinguishedName
         }
         # Add any changes to the splat
         ForEach($property in $expectedProperties.GetEnumerator()){
@@ -116,6 +129,17 @@ Function Update-ADUsersFromHR {
                 $splat['Manager'] = $managerFromHR.DistinguishedName
                 Write-Verbose " - Manager will be updated to: $($managerFromHR.DistinguishedName)"
             }
+        }
+        # Naming steps
+        If($splat.Contains('GivenName') -or $splat.Contains('SurName')){
+            $renameSplat = @{
+                Identity = $adUser.DistinguishedName
+                NewName = "$($user.first_name) $($user.last_name)"
+            }
+            Write-Verbose " - Renaming to $($user.first_name) $($user.last_name)"
+            Rename-ADObject @renameSplat
+            Write-Verbose " - Setting SamAccountName to: $($user.first_name).$($user.last_name)"
+            $splat['SamAccountName'] = "$($user.first_name).$($user.last_name)"
         }
         # Apply the changes
         If($splat.Count -gt 1){
