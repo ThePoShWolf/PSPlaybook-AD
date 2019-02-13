@@ -1,6 +1,8 @@
 #region Gather info
 # Single User's group membership:
 (Get-ADUser 'Walter White' -Properties MemberOf).MemberOf
+
+# Nicely formated
 (Get-ADUser 'Walter White' -Properties MemberOf).MemberOf | %{Get-ADGroup $_}
 
 # Multiple Users
