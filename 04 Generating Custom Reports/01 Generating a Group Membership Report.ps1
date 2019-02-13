@@ -28,6 +28,9 @@ foreach($user in $users){
 }
 $userGroups | Export-Excel .\UserGroups.xlsx -Title 'VP Group Memberships'
 
+# Validate
+Import-Excel .\UserGroups.xlsx -StartRow 2
+
 #endregion
 
 #region Functionize it!
