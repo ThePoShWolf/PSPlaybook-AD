@@ -1,6 +1,8 @@
 #region Gathering the data
-# For one user
+# Define the properties to retrieve
 $properties = 'Name','Department','Title','EmailAddress','OfficePhone'
+
+# Get one user's info
 Get-ADUser 'Walter White' -Properties $properties | Format-Table $properties
 
 # For all applicable users
