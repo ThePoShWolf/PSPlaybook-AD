@@ -76,6 +76,7 @@ Get-ADUserGroupMembershipReport -Identity 'Walter White' -FilePath .\Test.xlsx -
 
 # Verify
 Import-Excel .\Test.xlsx -StartRow 2
+Remove-Item .\Test.xlsx
 
 # All of a manager's reports
 Get-ADUser -Filter {Manager -eq 'Marie-ann.Wheatman'} | `
