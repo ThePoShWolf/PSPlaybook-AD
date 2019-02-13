@@ -67,7 +67,7 @@ Function Get-ADUserGroupMembershipReport {
         $out += $tmp
     }
     end{
-        $out | Export-Excel $FilePath
+        $out | Export-Excel $FilePath -Title $Title
     }
 }
 
@@ -75,7 +75,7 @@ Function Get-ADUserGroupMembershipReport {
 Get-ADUserGroupMembershipReport -Identity 'Walter White' -FilePath .\Test.xlsx -Title "Walter's Memberships"
 
 # Verify
-Import-Excel .\Test.xlsx
+Import-Excel .\Test.xlsx -StartRow 2
 
 # All of a manager's reports
 Get-ADUser -Filter {Manager -eq 'Marie-ann.Wheatman'} | `
