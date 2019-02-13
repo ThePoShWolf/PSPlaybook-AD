@@ -10,8 +10,8 @@ Get-ADUser -Filter {Title -like '*VP*'} -Properties MemberOf
 $users = Get-ADUser -Filter {Title -like '*VP*'} -Properties MemberOf
 foreach($user in $users){
     [pscustomobject]@{
-        User = $user.SamAccountName
         Name = $user.Name
+        User = $user.SamAccountName
         Memberships = ($user.MemberOf | ForEach-Object{Get-ADGroup $_}).Name
     }
 }
