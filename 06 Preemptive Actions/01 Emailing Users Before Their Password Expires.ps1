@@ -75,7 +75,7 @@ Function Send-ADPasswordReminders {
     [cmdletbinding()]
     param (
         [int]$DaysTillExpiration,
-        [string]$From = 'anthony@howell-it.com',
+        [string]$From,
         [pscredential]$EmailCredential = $cred
     )
     $htmlTemplate = @"

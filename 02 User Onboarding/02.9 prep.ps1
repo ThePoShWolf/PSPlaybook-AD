@@ -1,7 +1,7 @@
 $params = @{
     To = 'anthony@howell-it.com'
     From = 'anthony@howell-it.com'
-    Credential = Get-Credential
+    Credential = $cred
     Subject = 'Email subject line'
     Body = '<h1>Body</h1><p>this is the paragraph</p>'
     BodyAsHtml = $true
