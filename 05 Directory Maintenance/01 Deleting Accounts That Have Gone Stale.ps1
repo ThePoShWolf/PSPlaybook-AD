@@ -2,26 +2,30 @@
 # Using Search-ADAccount
 Search-ADAccount -AccountInactive -TimeSpan '90.00:00:00' -UsersOnly
 
-# Info on the LastLogonDateTimeStamp: https://blogs.technet.microsoft.com/askds/2009/04/15/the-lastlogontimestamp-attribute-what-it-was-designed-for-and-how-it-works/
+#region Using a filter
+# Info on the LastLogonTimeStamp: https://blogs.technet.microsoft.com/askds/2009/04/15/the-lastlogontimestamp-attribute-what-it-was-designed-for-and-how-it-works/
+Get-ADUser jesse.pinkman -Properties LastLogonTimeStamp | Select-Object Name,LastLogonTimeStamp
 
 # If it is older than $LogonDate
-$LogonDate = (Get-Date).AddDays(-90).ToFileTime()
-Get-ADUser -Filter {LastLogonDateTimeStamp -lt $LogonDate}
+$LogonDate = (Get-Date).AddHours(-1).ToFileTime()
+Get-ADUser -Filter {LastLogonTimeStamp -lt $LogonDate}
 
-# If it has value
-Get-ADUser -Filter {LastLogonDateTimeStamp -notlike "*"}
+# If it doesn't have value
+Get-ADUser -Filter {LastLogonTimeStamp -notlike "*"} -Properties LastLogonTimeStamp |
+Select-Object Name,LastLogonTimeStamp
 
 # And if the account was created before $createdDate
-$createdDate = (Get-Date).AddDays(-14).ToFileTime()
-Get-ADUser -Filter {Created -lt $createdDate}
+$createdDate = (Get-Date).AddDays(-14)
+Get-ADUser -Filter {Created -lt $createdDate} -Properties Created |
+Select-Object Name,Created
 
 # Add them all together:
 $filter = {
     ((LastLogonTimeStamp -lt $logonDate) -or (LastLogonTimeStamp -notlike "*"))
     -and (Created -lt $createdDate)
 }
-Get-ADuser -Filter $filter
-
+Get-ADuser -Filter $filter | Select-Object SamAccountName
+#endregion
 #endregion
 
 #region Functionize it
