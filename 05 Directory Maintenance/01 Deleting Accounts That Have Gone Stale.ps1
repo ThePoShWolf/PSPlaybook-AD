@@ -4,7 +4,7 @@ Search-ADAccount -AccountInactive -TimeSpan '90.00:00:00' -UsersOnly
 
 #region Using a filter
 # Info on the LastLogonTimeStamp: https://blogs.technet.microsoft.com/askds/2009/04/15/the-lastlogontimestamp-attribute-what-it-was-designed-for-and-how-it-works/
-Get-ADUser jesse.pinkman -Properties LastLogonTimeStamp | Select-Object Name,LastLogonTimeStamp
+Get-ADUser administrator -Properties LastLogonTimeStamp | Select-Object Name,LastLogonTimeStamp
 
 # If it is older than $LogonDate
 $LogonDate = (Get-Date).AddHours(-1).ToFileTime()
@@ -40,7 +40,7 @@ Function Get-ADStaleUsers {
         ((LastLogonTimeStamp -lt $NoLogonString) -or (LastLogonTimeStamp -notlike "*"))
         -and (Created -lt $createdBefore)
     }
-    $filter
+    Write-Verbose $filter
     Get-ADuser -Filter $filter
 }
 
