@@ -185,7 +185,7 @@ Function Get-GPOStatus {
 }
 
 # Usage
-Get-GPOStatus -Verbose
+Get-GPOStatus -Verbose | Format-List
 
 # Finding unused GPOs
 Get-GPOStatus | Where-Object {$_.EmptyOU -and -not $_.NonEmptyOU}
