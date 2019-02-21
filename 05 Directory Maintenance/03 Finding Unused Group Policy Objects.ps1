@@ -4,7 +4,8 @@
 Get-ADOrganizationalUnit -Filter {LinkedGroupPolicyObjects -like "*"} | Format-Table Name
 
 # For each OU, we need to:
-Get-ADObject -Filter {ObjectClass -ne 'OrganizationalUnit'} <#-SearchBase $OU#>
+$OU = 'OU=Sales,OU=People,DC=techsnipsdemo,DC=org'
+Get-ADObject -Filter {ObjectClass -ne 'OrganizationalUnit'} -SearchBase $OU
 
 # Loop through them all
 ForEach($OU in Get-ADOrganizationalUnit -Filter {LinkedGroupPolicyObjects -like "*"}){
@@ -26,43 +27,49 @@ ForEach($OU in Get-ADOrganizationalUnit -Filter {LinkedGroupPolicyObjects -like 
 #endregion
 
 #region Yes, functionize that please
-Function Get-ADOrganizationalUnitStatus {
+Function Get-ADOUStatus {
     param (
-
+        [string]$Filter = '*'
     )
-    ForEach($OU in Get-ADOrganizationalUnit -Filter {LinkedGroupPolicyObjects -like "*"}){
+    ForEach($OU in Get-ADOrganizationalUnit -Filter $Filter){
         $objects = $null
         $objects = Get-ADObject -Filter {ObjectClass -ne 'OrganizationalUnit'} -SearchBase $OU
         If($objects){
             [pscustomobject]@{
                 OU = $OU
                 Empty = $false
+                LinkedGPOs = [bool]$OU.LinkedGroupPolicyObjects
             }
         }Else{
             [pscustomobject]@{
                 OU = $OU
                 Empty = $true
+                LinkedGPOs = [bool]$OU.LinkedGroupPolicyObjects
             }
         }
     }
 }
 
 # Usage
-Get-ADOrganizationalUnitStatus
+Get-ADOUStatus
 
 #endregion
 
 #region Find GPOs linked to those empty OUs
 
 # Store the OU status in a variable
-$emptyOUs = Get-ADOrganizationalUnitStatus | Where-Object Empty
+$emptyOUs = Get-ADOUStatus | Where-Object {$_.Empty -and $_.LinkedGPOs}
 
 # Get the linked GPO Guids
 $emptyOUs[0].OU.LinkedGroupPolicyObjects
 
 # Convert it to a GPO
-$emptyOUs[0].OU.LinkedGroupPolicyObjects.Substring(4,36)
-Get-GPO -Guid $emptyOUs[0].LinkedGroupPolicyObjects.Substring(4,36)
+$emptyOUs[0].OU.LinkedGroupPolicyObjects[0].Substring(4,36)
+# Or regex
+$emptyOUs[0].OU.LinkedGroupPolicyObjects[0] -match '^cn=\{(?<guid>[^\{\}]+)\}'
+$Matches.guid
+
+Get-GPO -Guid $emptyOUs[0].OU.LinkedGroupPolicyObjects[0].Substring(4,36)
 
 # Object to build output
 $GPOsLinkedToEmptyOUs = @()
@@ -92,15 +99,17 @@ $GPOsLinkedToEmptyOUs | Format-List
 #endregion
 
 #region Check if those GPOs are linked to any OUs with children
-
-ForEach($OU in $nonEmptyOUs){
+$nonEmptyOUs = Get-ADOUStatus | Where-Object {-not $_.Empty}
+ForEach($OU in $nonEmptyOUs.OU){
     ForEach($GPO in $GPOsLinkedToEmptyOUs){
-        If($OU.LinkedGroupPolicyObjects.Substring(4,36) -contains $GPO.GPOId){
-            Write-Host "GPO: '$($GPO.GPOName)' also linked to non-empty OU: $($OU.Name)"
-            If($GPO.NonEmptyOU){
-                $GPO.NonEmptyOU = [string[]]$GPO.NonEmptyOU + $OU.DistinguishedName
-            }Else{
-                $GPO.NonEmptyOU = $OU.DistinguishedName
+        ForEach($GPOGuid in $OU.LinkedGroupPolicyObjects){
+            If($GPOGuid.Substring(4,36) -eq $GPO.GPOId){
+                Write-Host "GPO: '$($GPO.GPOName)' also linked to non-empty OU: $($OU.Name)"
+                If($GPO.NonEmptyOU){
+                    $GPO.NonEmptyOU = [string[]]$GPO.NonEmptyOU + $OU.DistinguishedName
+                }Else{
+                    $GPO.NonEmptyOU = $OU.DistinguishedName
+                }
             }
         }
     }
@@ -113,30 +122,32 @@ $GPOsLinkedToEmptyOUs | Format-List
 
 #region Bring it all together into a function with useful output
 
-Function Get-GPOsLinkedToEmptyOUs{
+Function Get-GPOStatus {
     [cmdletbinding()]
     Param()
-    Function Get-ADOrganizationalUnitStatus {
+    Function Get-ADOUStatus {
         param (
-    
+            [string]$Filter = '*'
         )
-        ForEach($OU in Get-ADOrganizationalUnit -Filter {LinkedGroupPolicyObjects -like "*"}){
+        ForEach($OU in Get-ADOrganizationalUnit -Filter $Filter){
             $objects = $null
             $objects = Get-ADObject -Filter {ObjectClass -ne 'OrganizationalUnit'} -SearchBase $OU
             If($objects){
                 [pscustomobject]@{
                     OU = $OU
                     Empty = $false
+                    LinkedGPOs = [bool]$OU.LinkedGroupPolicyObjects
                 }
             }Else{
                 [pscustomobject]@{
                     OU = $OU
                     Empty = $true
+                    LinkedGPOs = [bool]$OU.LinkedGroupPolicyObjects
                 }
             }
         }
     }
-    $OUs = Get-ADOrganizationalUnitStatus
+    $OUs = Get-ADOUStatus | Where-Object {$_.LinkedGPOs}
     $GPOsLinkedToEmptyOUs = @()
     ForEach($OU in ($OUs | Where-Object {$_.empty}).OU){
         ForEach($GPOGuid in $OU.LinkedGroupPolicyObjects){
@@ -158,12 +169,14 @@ Function Get-GPOsLinkedToEmptyOUs{
     }
     ForEach($OU in ($OUs | Where-Object {-not $_.empty}).OU){
         ForEach($GPO in $GPOsLinkedToEmptyOUs){
-            If($OU.LinkedGroupPolicyObjects.Substring(4,36) -contains $GPO.GPOId){
-                Write-Verbose "GPO: '$($GPO.GPOName)' also linked to non-empty OU: $($OU.Name)"
-                If($GPO.NonEmptyOU){
-                    $GPO.NonEmptyOU = [string[]]$GPO.NonEmptyOU + $OU.DistinguishedName
-                }Else{
-                    $GPO.NonEmptyOU = $OU.DistinguishedName
+            ForEach($GPOGuid in $OU.LinkedGroupPolicyObjects){
+                If($GPOGuid.Substring(4,36) -eq $GPO.GPOId){
+                    Write-Verbose "GPO: '$($GPO.GPOName)' also linked to non-empty OU: $($OU.Name)"
+                    If($GPO.NonEmptyOU){
+                        $GPO.NonEmptyOU = [string[]]$GPO.NonEmptyOU + $OU.DistinguishedName
+                    }Else{
+                        $GPO.NonEmptyOU = $OU.DistinguishedName
+                    }
                 }
             }
         }
@@ -172,9 +185,9 @@ Function Get-GPOsLinkedToEmptyOUs{
 }
 
 # Usage
-Get-GPOsLinkedToEmptyOUs
+Get-GPOStatus -Verbose
 
 # Finding unused GPOs
-Get-GPOsLinkedToEmptyOUs | Where-Object {$_.EmpyOU -and -not $_.NonEmptyOU}
+Get-GPOStatus | Where-Object {$_.EmptyOU -and -not $_.NonEmptyOU}
 
 #endregion
