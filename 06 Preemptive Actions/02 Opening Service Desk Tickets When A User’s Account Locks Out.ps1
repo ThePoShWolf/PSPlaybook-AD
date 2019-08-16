@@ -27,7 +27,7 @@ Get-SDAuthConfig -Silent
 $ticketParams = @{
     Status = 'Open'
     Subject = "$UserName has been lockedout"
-    FirstPost = "$UserName was lockedout at $TimeCreated from $CallerComputer"
+    FirstPost = "$UserName was lockedout at $TimeCreated"
 }
 New-SDTicket @ticketParams
 
