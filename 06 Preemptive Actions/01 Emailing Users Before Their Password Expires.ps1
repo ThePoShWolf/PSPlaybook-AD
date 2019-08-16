@@ -37,6 +37,8 @@ $days = 44
 # Convert that to filetime
 $date = (Get-Date).AddDays($days).ToFileTime()
 
+$date
+
 # And get all the users
 Get-ADUser -Filter $filter -Properties 'msDS-UserPasswordExpiryTimeComputed' | `
 Where-Object {$_.'msDS-UserPasswordExpiryTimeComputed' -lt $date}
@@ -109,6 +111,6 @@ Function Send-ADPasswordReminders {
 }
 
 # Usage
-Send-ADPasswordReminders -DaysTillExpiration 50
+Send-ADPasswordReminders -DaysTillExpiration 50 -From $params['From']
 
 #endregion

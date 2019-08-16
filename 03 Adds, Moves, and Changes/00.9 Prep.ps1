@@ -7,8 +7,8 @@ $adfine = @{
 }
 New-ADFineGrainedPasswordPolicy @adfine
 # To be able to lock him out from a DC
-Add-ADGroupMember 'Domain Admins' -Members 'Jesse Pinkman'
+Add-ADGroupMember 'Domain Admins' -Members 'Jesse.Pinkman'
 $jesseCred = [pscredential]::new('techsnipsdemo\jesse.pinkman',(ConvertTo-SecureString 'SomeRandomPass1!' -AsPlainText -Force))
-For($x=0;$x -le 5;$x++){
+For($x=0;$x -le 10;$x++){
     Enter-PSSession DC01 -Credential $jesseCred
 }
