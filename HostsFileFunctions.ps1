@@ -177,7 +177,7 @@ Function Remove-HostsFileEntry
         }
         Else
         {
-            Get-Content C:\Windows\System32\drivers\etc\hosts | %{If($_ -notlike "$($IPAddress.IPAddressToString)*"){$_}} | Out-File -Encoding ascii C:\Windows\System32\drivers\etc\hosts
+            Get-Content C:\Windows\System32\drivers\etc\hosts | %{If($_ -notlike "$($IPAddress.IPAddressToString)*"){$_}} | Out-File -Encoding utf8 C:\Windows\System32\drivers\etc\hosts
         }
     }
     End
