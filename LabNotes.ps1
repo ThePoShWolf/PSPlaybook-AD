@@ -9,7 +9,7 @@ Function New-LabSessions {
     Param (
         [string[]]$Comps = @('DC01','DC02'),
         [string]$Domain = 'techsnipsdemo.org',
-        [string]$Password = 'Somepass1'
+        [string]$Password = 'Password1!'
     )
     $global:Sessions = @()
     $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
