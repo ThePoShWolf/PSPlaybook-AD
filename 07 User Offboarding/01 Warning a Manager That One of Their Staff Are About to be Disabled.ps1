@@ -62,9 +62,10 @@ $exampleParams = @{
 }
 Send-MailMessage @params
 #endregion
-$manager = Get-ADUser $groupedUsers[0].Name
+$manager = Get-ADUser $groupedUsers[0].Name -Properties EmailAddress
 $html = $header + ($htmlTemplate -f $manager.GivenName,$tableInfo)
 $params['body'] = $html
+$param['To'] = $manager.EmailAddress
 Send-MailMessage @params
 
 #endregion
