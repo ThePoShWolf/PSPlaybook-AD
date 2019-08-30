@@ -1,33 +1,30 @@
 #region
 # Finding accounts soon to expire
 $users = Search-ADACcount -AccountExpiring -TimeSpan '14.00:00:00'
+$users[0]
+
+# Adding the manager field
+$users = Search-ADACcount -AccountExpiring -TimeSpan '14.00:00:00' | Get-ADUser -Properties Manager,AccountExpirationDate
+$users[0]
 
 # Find their manager
 ForEach($user in $users){
-    $manager = (Get-ADUser $user.SamAccountName -Properties Manager).Manager
-    Get-ADUser $manager
+    Get-ADUser $user.Manager
 }
 #endregion
 
 #region Notify
-# Sending an email
-$exampleParams = @{
-    Subject = 'Email subject line'
-    Body = '<h1>Body</h1><p>this is the paragraph</p>'
-    BodyAsHtml = $true
-    To = 'email@domain.com'
-    From =  'email@domain.coum'
-    SmtpServer = 'smtp.domain.com'
-    UseSSL = $true
-}
-Send-MailMessage @params
+# Group the users my their manager
+$groupedUsers = $users | Group-Object Manager
+$groupedUsers
 
 # Format the users
 $tableInfo = ''
-ForEach($user in $users){
+ForEach($user in $groupedUsers[0].Group){
     $ts = New-TimeSpan -Start (Get-Date) -End $user.AccountExpirationDate
     [string]$tableInfo += "<tr><th>$($user.Name)</th><th>$($ts.Days)</th></tr>"
 }
+$tableInfo
 
 # Put them in HTML
 $header = @"
@@ -52,6 +49,20 @@ $htmlTemplate = @"
 <p>Your friendly, neighborhood PowerShell automation system.</p>
 "@
 
+#region Emails in PowerShell
+# Sending an email
+$exampleParams = @{
+    Subject = 'Email subject line'
+    Body = '<h1>Body</h1><p>this is the paragraph</p>'
+    BodyAsHtml = $true
+    To = 'email@domain.com'
+    From =  'email@domain.coum'
+    SmtpServer = 'smtp.domain.com'
+    UseSSL = $true
+}
+Send-MailMessage @params
+#endregion
+$manager = Get-ADUser $groupedUsers[0].Name
 $html = $header + ($htmlTemplate -f $manager.GivenName,$tableInfo)
 $params['body'] = $html
 Send-MailMessage @params
@@ -85,13 +96,11 @@ table, th, td {
 <p>Thanks!</p>
 <p>Your friendly, neighborhood PowerShell automation system.</p>
 "@
-    $users = @()
-    $ts = New-TimeSpan -Start (Get-Date) -End (Get-Date).AddDays($DaysTillExpiration)
-    $searchUsers = Search-ADACcount -AccountExpiring -TimeSpan $ts
-    ForEach($user in $searchUsers){
-        $users += Get-ADUser $user.SamAccountName -Properties Manager,AccountExpirationDate
-    }
+    # Get the expiring users
+    $users = Search-ADACcount -AccountExpiring -TimeSpan "$DaysTillExpiration.00:00:00" | Get-ADUser -Properties Manager,AccountExpirationDate
+    # Group them
     $groupedUsers = $users | Group-Object Manager
+    # Send the emails
     ForEach($group in $groupedUsers){
         $tableInfo = $null
         ForEach($user in $group.Group){
@@ -115,6 +124,6 @@ table, th, td {
 }
 
 # Usage
-Send-ADAccountExpirations -DaysTillExpiration 14 -From $from
+Send-ADAccountExpirations -DaysTillExpiration 14 -From $cred.UserName
 
 #endregion
