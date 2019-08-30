@@ -1,10 +1,10 @@
 #region
 # Finding accounts soon to expire
-$users = Search-ADACcount -AccountExpiring -TimeSpan '14.00:00:00'
+$users = Search-ADAccount -AccountExpiring -TimeSpan '14.00:00:00'
 $users[0]
 
 # Adding the manager field
-$users = Search-ADACcount -AccountExpiring -TimeSpan '14.00:00:00' | Get-ADUser -Properties Manager,AccountExpirationDate
+$users = Search-ADAccount -AccountExpiring -TimeSpan '14.00:00:00' | Get-ADUser -Properties Manager,AccountExpirationDate
 $users[0]
 
 # Find their manager
