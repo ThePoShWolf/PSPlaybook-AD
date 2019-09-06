@@ -7,6 +7,7 @@ $contacts = Get-ADObject -Filter {ObjectClass -eq 'Contact'} -Properties *
 
 # AzureAD Module
 # Install-Module AzureAD
+Import-Module AzureAD
 
 # Create the password profile
 # Add-Type -AssemblyName System.Web
