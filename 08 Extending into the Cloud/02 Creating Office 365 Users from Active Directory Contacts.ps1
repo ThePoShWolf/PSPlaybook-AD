@@ -79,6 +79,11 @@ Function Copy-ADContactsToO365 {
                     $aadUserParams["$($props[$prop])"] = $contact."$prop"
                 }
             }
+            # Create the password profile
+            $PasswordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
+            $PasswordProfile.Password = [System.Web.Security.Membership]::GeneratePassword(10,1)
+
+            # Set the known parameters
             $aadUserParams['AccountEnabled'] = $false
             $aadUserParams['PasswordProfile'] = $PasswordProfile
             $aadUserParams['MailNickname'] = $contact.mail.Split('@')[0]
