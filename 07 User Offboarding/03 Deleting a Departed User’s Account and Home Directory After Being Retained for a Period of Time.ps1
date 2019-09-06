@@ -1,7 +1,7 @@
 #region
 # Retrieve the user to be deleted
 $disabledOU = 'OU=Disabled,OU=People,DC=techsnipsdemo,DC=org'
-$users = Get-ADUser -SearchBase $disabledOU -Filter * -Properties Description
+$users = Get-ADUser -SearchBase $disabledOU -Filter * -Properties Description,HomeDirectory
 
 # Figure out when it was disabled
 foreach ($user in $users) {
@@ -37,20 +37,29 @@ Invoke-ADUserOffboarding jesse.pinkman
 #region Its a bird, its a plane, no its a PowerShell function!!!
 Function Remove-ADDisabledUsers {
     param (
-        [string]$disabledOU = 'OU=Disabled,OU=People,DC=techsnipsdemo,DC=org',
-        [int]$DaysOld = 30
+        [int]$DaysDisabled = 30,
+        [string]$disabledOU = 'OU=Disabled,OU=People,DC=techsnipsdemo,DC=org'
     )
-    $olderThan = (Get-Date).AddDays(-30)
-    foreach ($user in (Get-ADUser -SearchBase $disabledOU -Filter * -Properties HomeDirectory)) {
+    # Create the date
+    $olderThan = (Get-Date).AddDays(-$DaysDisabled)
+    # Take care of each account
+    foreach ($user in (Get-ADUser -SearchBase $disabledOU -Filter * -Properties Description,HomeDirectory)) {
+        # Check for the disabled date
         if($user.Description -match 'Disabled (?<disableDate>\d{1,2}\/\d{1,2}\/\d{4})$') {
+            # If that date is older than the DaysDisabled
             if ([datetime]$Matches.disableDate -lt $olderThan) {
+                # Remove the home directory
                 if (Test-Path $user.HomeDirectory) {
                     Remove-Item $user.HomeDirectory -Recurse -Force
                 }
+                # and remove the user
                 Remove-ADUser $user -Confirm:$false
             }
         }
     }
 }
+
+# Usage
+Remove-ADDisabledUsers -DaysDisabled 0
 
 #endregion
