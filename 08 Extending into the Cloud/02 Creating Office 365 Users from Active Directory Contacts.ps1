@@ -5,6 +5,9 @@ Get-ADObject -Filter {ObjectClass -eq 'Contact'}
 # Get the relevant info to create a user in O365
 $contacts = Get-ADObject -Filter {ObjectClass -eq 'Contact'} -Properties *
 
+# AzureAD Module
+# Install-Module AzureAD
+
 # Create the password profile
 # Add-Type -AssemblyName System.Web
 $PasswordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
