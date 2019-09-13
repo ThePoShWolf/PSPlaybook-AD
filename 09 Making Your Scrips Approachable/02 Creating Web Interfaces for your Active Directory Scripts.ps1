@@ -52,6 +52,11 @@ Function Reset-ADUserPassword {
 }
 #endregion
 
+#region prereqs
+# onload_ADimport.ps1
+Import-ActiveDirectory
+#endregion
+
 #region WebJEAized
 [cmdletbinding(
     DefaultParameterSetName = 'Random'
