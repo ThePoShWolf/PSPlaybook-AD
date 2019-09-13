@@ -50,7 +50,7 @@ Function Reset-ADUserPassword {
     }
     End{}
 }
-#endregion]
+#endregion
 
 #region WebJEAized
 [cmdletbinding(
