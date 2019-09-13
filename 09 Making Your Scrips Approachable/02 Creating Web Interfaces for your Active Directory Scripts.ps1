@@ -50,12 +50,7 @@ Function Reset-ADUserPassword {
     }
     End{}
 }
-#endregion
-
-#region prereqs
-# onload_ADimport.ps1
-Import-ActiveDirectory
-#endregion
+#endregion]
 
 #region WebJEAized
 [cmdletbinding(
@@ -106,6 +101,11 @@ Process{
     }
 }
 End{}
+#endregion
+
+#region prereqs
+# onload_ADimport.ps1
+Import-ActiveDirectory
 #endregion
 
 #region WebJEAized with help
