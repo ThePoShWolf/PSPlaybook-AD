@@ -90,7 +90,6 @@ Function Copy-ADContactsToO365 {
 
             # If the UserPrincipalName isn't null, create the user
             if ($null -ne $aadUserParams['UserPrincipalName']) {
-                $aadUserParams
                 New-AzureADUser @aadUserParams
             }
         }
